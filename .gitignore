@@ -1,0 +1,6 @@
+venv/
+*.png
+*.jpg
+prismsort.py
+*.json
+*.ttf

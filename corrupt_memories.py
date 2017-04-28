@@ -43,13 +43,13 @@ class POSifiedText(markovify.Text):
 
 def get_image():
     tags = [
-        'computer',
         'cyberpunk',
         'cyber',
         'hacker',
         'circuit board',
         'wiring',
-        'electronics'
+        'electronics',
+        'programming'
     ]
     p = flickr.photos.search(
         per_page=500,
@@ -103,7 +103,7 @@ def write_text(pic, text, comp):
     w, h = pic.size
     w = str(int(w - (w / 10)))
     h = str(int(h - (h / 10)))
-    font = random.choice(os.listdir('fonts'))
+    font = random.choice([i for i in os.listdir('fonts') if i.endswith('.ttf')])
     gravity = random.choice([
         'NorthWest',
         'North',

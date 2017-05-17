@@ -4,3 +4,5 @@ venv/
 prismsort.py
 *.json
 *.ttf
+*.gif
+words.txt

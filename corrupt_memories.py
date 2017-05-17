@@ -42,22 +42,24 @@ class POSifiedText(markovify.Text):
 
 
 def get_image():
+    with open('words.txt') as f:
+        rand_word = random.choice(f.read().split())
+    print(rand_word)
     tags = [
         'cyberpunk',
         'cyber',
-        'hacker',
         'circuit board',
         'wiring',
         'electronics',
-        'programming'
+        'neon'
     ]
     p = flickr.photos.search(
+        text=rand_word,
         per_page=500,
         page=random.choice(range(1, 11)),
-        extras='url_l',
+        extras='url_l,tags',
         safesearch=2,
-        tags=random.choice(tags),
-        tag_mode='all'
+        tags=''.join([i + ',' for i in tags]).strip(',')
     )
     photo = random.choice(p['photos']['photo'])
     purl = photo['url_l']
@@ -99,10 +101,6 @@ def select_section(pic):
 
 
 def write_text(pic, text, comp):
-    pic.save('new.png', 'PNG')
-    w, h = pic.size
-    w = str(int(w - (w / 10)))
-    h = str(int(h - (h / 10)))
     font = random.choice([i for i in os.listdir('fonts') if i.endswith('.ttf')])
     gravity = random.choice([
         'NorthWest',
@@ -115,13 +113,17 @@ def write_text(pic, text, comp):
         'South',
         'SouthEast'
     ])
-    cmd = 'convert -background none -gravity {} -font fonts/{} '.format(gravity, font)
-    cmd += '-fill "rgb({},{},{})" -size {}x{} '.format(comp[0], comp[1], comp[2], w, h)
-    cmd += 'caption:"{}" new.png +swap -gravity center -composite new.png'.format(text)
-    print(cmd)
-    call(cmd, shell=True)
-    pic = Image.open('new.png')
-    return pic
+    images = [i for i in os.listdir() if i.startswith('glitch_out')]
+    for img in images:
+        pic = Image.open(img)
+        w, h = pic.size
+        w = str(int(w - (w / 10)))
+        h = str(int(h - (h / 10)))
+        cmd = 'convert -background none -gravity {} -font fonts/{} '.format(gravity, font)
+        cmd += '-fill "rgb({},{},{})" -size {}x{} '.format(comp[0], comp[1], comp[2], w, h)
+        cmd += 'caption:"{}" {} +swap -gravity center -composite {}'.format(text, img, img)
+        print(cmd)
+        call(cmd, shell=True)
 
 
 def get_text():
@@ -133,11 +135,11 @@ def get_text():
     return text
 
 
-def glitch_image(pic):
+def glitch_image(pic, count=1):
     angle = random.choice([i for i in range(360)])
     intensity = random.choice([i for i in range(-2, 3)])
     pic.save('glitch.png', 'PNG')
-    cmd = './prismsort.py glitch.png -a {} -i {}'.format(angle, intensity)
+    cmd = './prismsort.py glitch.png -a {} -i {} -n {}'.format(angle, intensity, count)
     print(cmd)
     call(cmd, shell=True)
     pic = Image.open('glitch_out0.png')
@@ -149,17 +151,29 @@ def post_to_mastodon(pic_path, text):
     mastodon.status_post(text, media_ids=[pic])
 
 
+def make_gif():
+    cmd = 'convert -delay 10 -loop 0 `ls -v glitch_out*` new.gif'
+    call(cmd, shell=True)
+    pic = Image.open('new.gif')
+
+
 def main():
-    pic = get_image().convert('L').convert('RGB')
+    pic = None
+    while not pic:
+        try:
+            pic = get_image()
+        except:
+            continue
+    # pic = pic.convert('L').convert('RGB')
     pic.filter(ImageFilter.SHARPEN)
     pastel, complement = get_colors()
     pic = add_pastel(pic, pastel)
     pic = select_section(pic)
-    pic = glitch_image(pic)
+    pic = glitch_image(pic, count=10)
     text = get_text()
-    pic = write_text(pic, text, complement)
-    pic.save('new.png', 'PNG')
-    post_to_mastodon('new.png', text)
+    write_text(pic, text, complement)
+    make_gif()
+    post_to_mastodon('new.gif', text)
 
 
 if __name__ == '__main__':

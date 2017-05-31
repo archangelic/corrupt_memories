@@ -101,6 +101,7 @@ def select_section(pic):
 
 
 def write_text(pic, text, comp):
+    text = text.replace('`', '')
     font = random.choice([i for i in os.listdir('fonts') if i.endswith('.ttf')])
     gravity = random.choice([
         'NorthWest',

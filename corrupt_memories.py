@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from datetime import datetime
 import json
 import os
 from pprint import pprint
@@ -28,6 +29,7 @@ mastodon = Mastodon(
     api_base_url=config['mast_base_url']
 )
 
+TIMESTAMP = datetime.now().strftime("%y%m%d%H%M")
 
 class POSifiedText(markovify.Text):
     def word_split(self, sentence):
@@ -100,7 +102,7 @@ def select_section(pic):
     return pic
 
 
-def write_text(pic, text, comp):
+def write_text(text, comp):
     text = text.replace('`', '')
     font = random.choice([i for i in os.listdir('fonts') if i.endswith('.ttf')])
     gravity = random.choice([
@@ -165,16 +167,18 @@ def main():
             pic = get_image()
         except:
             continue
-    # pic = pic.convert('L').convert('RGB')
     pic.filter(ImageFilter.SHARPEN)
     pastel, complement = get_colors()
     pic = add_pastel(pic, pastel)
     pic = select_section(pic)
     pic = glitch_image(pic, count=10)
     text = get_text()
-    write_text(pic, text, complement)
+    write_text(text, complement)
     make_gif()
     post_to_mastodon('new.gif', text)
+    large_image = Image.open('glitch_out0.png')
+    large_image = large_image.resize((1800, 1800))
+    large_image.save(os.path.join('hq', TIMESTAMP + '.png'), 'PNG')
 
 
 if __name__ == '__main__':

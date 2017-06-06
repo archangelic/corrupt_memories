@@ -29,7 +29,6 @@ mastodon = Mastodon(
     api_base_url=config['mast_base_url']
 )
 
-TIMESTAMP = datetime.now().strftime("%y%m%d%H%M")
 
 class POSifiedText(markovify.Text):
     def word_split(self, sentence):
@@ -42,6 +41,9 @@ class POSifiedText(markovify.Text):
         sentence = " ".join(word.split("::")[0] for word in words)
         return sentence
 
+
+def timestamp():
+    return datetime.now().strftime("%y%m%d%H%M%S")
 
 def get_image():
     with open('words.txt') as f:
@@ -178,7 +180,7 @@ def main():
     post_to_mastodon('new.gif', text)
     large_image = Image.open('glitch_out0.png')
     large_image = large_image.resize((1800, 1800))
-    large_image.save(os.path.join('hq', TIMESTAMP + '.png'), 'PNG')
+    large_image.save(os.path.join('hq', timestamp() + '.png'), 'PNG')
 
 
 if __name__ == '__main__':

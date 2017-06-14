@@ -15,6 +15,7 @@ from mastodon import Mastodon
 import nltk
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import requests
+import tweepy
 
 with open('config.json') as f:
     config = json.load(f)
@@ -28,6 +29,10 @@ mastodon = Mastodon(
     access_token=config['mast_key'],
     api_base_url=config['mast_base_url']
 )
+
+tw_auth = tweepy.OAuthHandler(config['tw_consumer_key'], config['tw_consumer_secret'])
+tw_auth.set_access_token(config['tw_token'], config['tw_token_secret'])
+tw = tweepy.API(tw_auth)
 
 
 class POSifiedText(markovify.Text):
@@ -156,6 +161,10 @@ def post_to_mastodon(pic_path, text):
     mastodon.status_post(text, media_ids=[pic])
 
 
+def post_to_twitter(pic_path, text):
+    tw.update_with_media(pic_path, text)
+
+
 def make_gif():
     cmd = 'convert -delay 10 -loop 0 `ls -v glitch_out*` new.gif'
     call(cmd, shell=True)
@@ -178,6 +187,7 @@ def main():
     write_text(text, complement)
     make_gif()
     post_to_mastodon('new.gif', text)
+    post_to_twitter('new.gif', text)
     large_image = Image.open('glitch_out0.png')
     large_image = large_image.resize((1800, 1800))
     large_image.save(os.path.join('hq', timestamp() + '.png'), 'PNG')

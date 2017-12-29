@@ -60,7 +60,13 @@ def get_image():
         'circuit board',
         'wiring',
         'electronics',
-        'neon'
+        'neon',
+        'japan',
+        'china',
+        'chinese',
+        'japanese',
+        'korea',
+        'korean',
     ]
     p = flickr.photos.search(
         text=rand_word,
@@ -111,6 +117,8 @@ def select_section(pic):
 
 def write_text(text, comp):
     text = text.replace('`', '')
+    text = text.replace('"', '\\"')
+    text = text.replace('!', '\\!')
     font = random.choice([i for i in os.listdir('fonts') if i.endswith('.ttf')])
     gravity = random.choice([
         'NorthWest',
@@ -141,7 +149,6 @@ def get_text():
         cyber = json.load(f)
     text_model = POSifiedText.from_json(cyber)
     text = text_model.make_short_sentence(80)
-    text = ''.join([i if ord(i) < 128 else '' for i in text])
     return text
 
 
@@ -170,6 +177,11 @@ def make_gif():
     call(cmd, shell=True)
     pic = Image.open('new.gif')
 
+def cleanup():
+    images = [i for i in os.listdir() if i.endswith(('.jpg', '.png', '.gif'))]
+    for i in images:
+        os.remove(i)
+
 
 def main():
     pic = None
@@ -186,11 +198,15 @@ def main():
     text = get_text()
     write_text(text, complement)
     make_gif()
-    post_to_mastodon('new.gif', text)
-    post_to_twitter('new.gif', text)
-    large_image = Image.open('glitch_out0.png')
-    large_image = large_image.resize((1800, 1800))
-    large_image.save(os.path.join('hq', timestamp() + '.png'), 'PNG')
+    try:
+        post_to_mastodon('new.gif', text)
+        post_to_twitter('new.gif', text)
+        large_image = Image.open('glitch_out0.png')
+        large_image = large_image.resize((1800, 1800))
+        large_image.save(os.path.join('hq', timestamp() + '.png'), 'PNG')
+    except:
+        pass
+    cleanup()
 
 
 if __name__ == '__main__':

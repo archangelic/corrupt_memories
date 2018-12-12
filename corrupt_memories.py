@@ -54,30 +54,17 @@ def get_image():
     with open('words.txt') as f:
         rand_word = random.choice(f.read().split())
     print(rand_word)
-    tags = [
-        'cyberpunk',
-        'cyber',
-        'circuit board',
-        'wiring',
-        'electronics',
-        'neon',
-        'japan',
-        'china',
-        'chinese',
-        'japanese',
-        'korea',
-        'korean',
-    ]
     p = flickr.photos.search(
         text=rand_word,
         per_page=500,
         page=random.choice(range(1, 11)),
         extras='url_l,tags',
-        safesearch=2,
-        tags=''.join([i + ',' for i in tags]).strip(',')
+        safesearch=2
     )
     photo = random.choice(p['photos']['photo'])
     purl = photo['url_l']
+    if 'food' in photo['tags']:
+        return None
     pprint(photo)
     r = requests.get(purl)
     with open('fimage.jpg', 'wb') as f:
@@ -154,9 +141,9 @@ def get_text():
 
 def glitch_image(pic, count=1):
     angle = random.choice([i for i in range(360)])
-    intensity = random.choice([i for i in range(-2, 3)])
+    interpol = random.choice([0, 1, 2])
     pic.save('glitch.png', 'PNG')
-    cmd = './prismsort.py glitch.png -a {} -i {} -n {}'.format(angle, intensity, count)
+    cmd = './prismsort.py glitch.png -d -a {} -I {} -i 3 -n {}'.format(angle, interpol, count)
     print(cmd)
     call(cmd, shell=True)
     pic = Image.open('glitch_out0.png')
@@ -165,7 +152,7 @@ def glitch_image(pic, count=1):
 
 def post_to_mastodon(pic_path, text):
     pic = mastodon.media_post(pic_path)
-    mastodon.status_post(text, media_ids=[pic])
+    mastodon.status_post(text, media_ids=[pic], sensitive=True)
 
 
 def post_to_twitter(pic_path, text):
@@ -201,9 +188,9 @@ def main():
     try:
         post_to_mastodon('new.gif', text)
         post_to_twitter('new.gif', text)
-        large_image = Image.open('glitch_out0.png')
-        large_image = large_image.resize((1800, 1800))
-        large_image.save(os.path.join('hq', timestamp() + '.png'), 'PNG')
+        # large_image = Image.open('glitch_out0.png')
+        # large_image = large_image.resize((1800, 1800))
+        # large_image.save(os.path.join('hq', timestamp() + '.png'), 'PNG')
     except:
         pass
     cleanup()

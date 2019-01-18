@@ -72,6 +72,23 @@ def get_image():
     pic = Image.open('fimage.jpg')
     return pic
 
+def get_text_color(bg):
+    bg_lum = (299 * bg[0] + 587 * bg[1] + 114 * bg[2]) / 1000
+    lum = 0.0
+    while lum < 3.0:
+        fg = get_color()
+        fg_lum = (299 * fg[0] + 587 * fg[1] + 114 * fg[2]) / 1000
+        lum = fg_lum / bg_lum
+    return fg
+
+
+def get_color():
+    letters = 'ABCDEF0123456489'
+    color = ''.join([random.choice(letters) for i in range(6)])
+    rgb = (color[0:2], color[2:4], color[4:6])
+    rgbstr = b'aabbcc'
+    p = struct.unpack('BBB', rgbstr.fromhex(color))
+    return p
 
 def get_colors():
     letters = 'ABCDEF0123456489'
@@ -178,9 +195,12 @@ def main():
         except:
             continue
     pic.filter(ImageFilter.SHARPEN)
-    pastel, complement = get_colors()
+    pastel = get_color()
     pic = add_pastel(pic, pastel)
     pic = select_section(pic)
+    bg_pic = pic.resize((1,1))
+    bg_color = bg_pic.getpixel((0,0))
+    complement = get_text_color(bg_color)
     pic = glitch_image(pic, count=10)
     text = get_text()
     write_text(text, complement)

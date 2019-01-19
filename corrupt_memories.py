@@ -72,14 +72,12 @@ def get_image():
     pic = Image.open('fimage.jpg')
     return pic
 
-def get_text_color(bg):
-    bg_lum = (299 * bg[0] + 587 * bg[1] + 114 * bg[2]) / 1000
-    lum = 0.0
-    while lum < 3.0:
-        fg = get_color()
-        fg_lum = (299 * fg[0] + 587 * fg[1] + 114 * fg[2]) / 1000
-        lum = fg_lum / bg_lum
-    return fg
+def get_text_color(color):
+    color = color[1:]
+    rgb = (color[0:2], color[2:4], color[4:6])
+    rgbstr = b'aabbcc'
+    p = struct.unpack('BBB', rgbstr.fromhex(color))
+    return p
 
 
 def get_color():
@@ -198,12 +196,19 @@ def main():
     while not combo:
         pastel = get_color()
         pic2 = add_pastel(pic, pastel)
-        pic2 = select_section(pic)
+        pic2 = select_section(pic2)
         bg_pic = pic2.resize((1,1))
         bg_color = bg_pic.getpixel((0,0))
+        bg_color = '{:02x}{:02x}{:02x}'.format(*bg_color)
         combo = requests.get(f"https://randoma11y.com/combos?hex={bg_color}").json()
+        print(bg_color)
+    combo = combo[0]
+    if combo['color_two'] != '#' + bg_color:
+        complement = combo['color_two']
+    else:
+        complement = combo['color_one']
     pprint(combo)
-    complement = 'bananas'
+    complement = get_text_color(complement)
     pic2 = glitch_image(pic2, count=10)
     text = get_text()
     write_text(text, complement)

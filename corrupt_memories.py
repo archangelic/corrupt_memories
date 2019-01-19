@@ -186,7 +186,6 @@ def cleanup():
     for i in images:
         os.remove(i)
 
-
 def main():
     pic = None
     while not pic:
@@ -195,13 +194,17 @@ def main():
         except:
             continue
     pic.filter(ImageFilter.SHARPEN)
-    pastel = get_color()
-    pic = add_pastel(pic, pastel)
-    pic = select_section(pic)
-    bg_pic = pic.resize((1,1))
-    bg_color = bg_pic.getpixel((0,0))
-    complement = get_text_color(bg_color)
-    pic = glitch_image(pic, count=10)
+    combo = []
+    while not combo:
+        pastel = get_color()
+        pic2 = add_pastel(pic, pastel)
+        pic2 = select_section(pic)
+        bg_pic = pic2.resize((1,1))
+        bg_color = bg_pic.getpixel((0,0))
+        combo = requests.get(f"https://randoma11y.com/combos?hex={bg_color}").json()
+    pprint(combo)
+    complement = 'bananas'
+    pic2 = glitch_image(pic2, count=10)
     text = get_text()
     write_text(text, complement)
     make_gif()

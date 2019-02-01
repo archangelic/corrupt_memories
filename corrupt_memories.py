@@ -72,24 +72,26 @@ def get_image():
     pic = Image.open('fimage.jpg')
     return pic
 
-
-def get_colors():
-    letters = 'ABCDEF0123456489'
-    color = ''.join([random.choice(letters) for i in range(6)])
-    rgb = (color[0:2], color[2:4], color[4:6])
+def get_text_color(color):
+    rgb = tuple([format(x, 'x') for x in color])
     comp = ['%02X' % (255 - int(a, 16)) for a in rgb]
     complement = ''.join(comp)
     rgbstr = b'aabbcc'
+    p = struct.unpack('BBB', rgbstr.fromhex(complement))
+    return p
+
+def get_color():
+    letters = 'ABCDEF0123456489'
+    color = ''.join([random.choice(letters) for i in range(6)])
+    rgb = (color[0:2], color[2:4], color[4:6])
+    rgbstr = b'aabbcc'
     p = struct.unpack('BBB', rgbstr.fromhex(color))
-    c = struct.unpack('BBB', rgbstr.fromhex(complement))
-    return (p, c)
+    return p
 
-
-def add_pastel(pic, pastel):
-    layer = Image.new('RGBA', pic.size, pastel + (128,))
+def add_filter(pic, color):
+    layer = Image.new('RGBA', pic.size, color + (128,))
     pic.paste(layer, (0, 0), layer)
     return pic
-
 
 def select_section(pic):
     x = [i for i in range(pic.size[0] - 500)]
@@ -100,7 +102,6 @@ def select_section(pic):
     bottom = top + 500
     pic = pic.crop((left, top, right, bottom))
     return pic
-
 
 def write_text(text, comp):
     text = text.replace('`', '')
@@ -130,14 +131,12 @@ def write_text(text, comp):
         print(cmd)
         call(cmd, shell=True)
 
-
 def get_text():
     with open('cyber.json') as f:
         cyber = json.load(f)
     text_model = POSifiedText.from_json(cyber)
     text = text_model.make_short_sentence(80)
     return text
-
 
 def glitch_image(pic, count=1):
     angle = random.choice([i for i in range(360)])
@@ -149,15 +148,12 @@ def glitch_image(pic, count=1):
     pic = Image.open('glitch_out0.png')
     return pic
 
-
 def post_to_mastodon(pic_path, text):
     pic = mastodon.media_post(pic_path)
     mastodon.status_post(text, media_ids=[pic], sensitive=True)
 
-
 def post_to_twitter(pic_path, text):
     tw.update_with_media(pic_path, text)
-
 
 def make_gif():
     cmd = 'convert -delay 10 -loop 0 `ls -v glitch_out*` new.gif'
@@ -169,7 +165,6 @@ def cleanup():
     for i in images:
         os.remove(i)
 
-
 def main():
     pic = None
     while not pic:
@@ -178,9 +173,12 @@ def main():
         except:
             continue
     pic.filter(ImageFilter.SHARPEN)
-    pastel, complement = get_colors()
-    pic = add_pastel(pic, pastel)
+    filter_color = get_color()
+    pic = add_filter(pic, filter_color)
     pic = select_section(pic)
+    bg_pic = pic.resize((1,1))
+    bg_color = bg_pic.getpixel((0,0))
+    complement = get_text_color(bg_color)
     pic = glitch_image(pic, count=10)
     text = get_text()
     write_text(text, complement)
@@ -188,9 +186,6 @@ def main():
     try:
         post_to_mastodon('new.gif', text)
         post_to_twitter('new.gif', text)
-        # large_image = Image.open('glitch_out0.png')
-        # large_image = large_image.resize((1800, 1800))
-        # large_image.save(os.path.join('hq', timestamp() + '.png'), 'PNG')
     except:
         pass
     cleanup()

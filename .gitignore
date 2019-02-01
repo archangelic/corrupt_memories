@@ -9,3 +9,4 @@ words.txt
 .DS_Store
 ._.DS_Store
 hq/
+__pycache__/

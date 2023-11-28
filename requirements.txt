@@ -1,7 +1,7 @@
-flickrapi~=2.3
-markovify~=0.6.0
-Mastodon.py~=1.0.7
-nltk~=3.2.4
-Pillow~=4.1.1
-requests~=2.20.0
-tweepy~=3.5.0
+flickrapi ~= 2.3
+markovify ~= 0.6.0
+Mastodon.py ~= 1.0.7
+nltk ~= 3.2.4
+Pillow ~= 4.1.1
+requests ~= 2.20.0
+tweepy ~= 3.5.0
